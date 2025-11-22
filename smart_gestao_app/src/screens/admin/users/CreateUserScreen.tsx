@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import axios from "axios";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../../App";
+import { saveLastRoute } from "../../../utils/navigationState";
+import Toast from "react-native-toast-message";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CreateUser">;
 
@@ -19,6 +21,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
     setSenha("");
     setEmpresaId("");
     setPerfilId("");
+    saveLastRoute("Usuarios", { token });
   }, []);
 
   const BASE_URL = "http://192.168.5.22:3000";
@@ -43,12 +46,13 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         }
       );
 
-      Alert.alert("Sucesso", "Usuário criado!", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("Usuarios", { token }),
-        },
-      ]);
+      Toast.show({
+        type: "success",
+        text1: "Usuário criado!",
+        text2: "O usuário foi salvo com sucesso.",
+      });
+
+      navigation.navigate("Usuarios", { token });
     } catch (err: any) {
       console.log(err.response?.data, err.message);
       Alert.alert("Erro", err.response?.data?.message || "Falha ao criar usuário");

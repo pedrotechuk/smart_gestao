@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import type { DrawerScreenProps } from "@react-navigation/drawer";
 import type { DrawerParamList } from "../../../navigation/types";
 import axios from "axios";
+import { saveLastRoute } from "../../../utils/navigationState";
+import Modal from "react-native-modal";
+import Toast from "react-native-toast-message";
 
 type Props = DrawerScreenProps<DrawerParamList, "Usuarios">;
 
@@ -18,6 +21,10 @@ export default function UsuariosScreen({ navigation, route }: Props) {
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null);
 
   const BASE_URL = "http://192.168.5.22:3000";
 
@@ -37,31 +44,43 @@ export default function UsuariosScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     carregarUsuarios();
+    saveLastRoute("Usuarios", { token });
   }, []);
 
-  const confirmarExclusao = (id: number) => {
-    Alert.alert(
-      "Excluir Usuário",
-      "Tem certeza que deseja excluir este usuário?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", style: "destructive", onPress: () => excluirUsuario(id) },
-      ]
-    );
+  // Abrir modal
+  const confirmarExclusao = (usuario: Usuario) => {
+    setUsuarioSelecionado(usuario);
+    setModalVisible(true);
   };
 
-  const excluirUsuario = async (id: number) => {
+  // Excluir usuário
+  const excluirUsuario = async () => {
+    if (!usuarioSelecionado) return;
+
     try {
-      await axios.delete(`${BASE_URL}/users/${id}`, {
+      await axios.delete(`${BASE_URL}/users/${usuarioSelecionado.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      Alert.alert("Pronto", "Usuário excluído com sucesso!");
+      Toast.show({
+        type: "success",
+        text1: "Usuário excluído",
+        text2: `${usuarioSelecionado.username} foi removido.`,
+      });
+
       carregarUsuarios();
+
     } catch (error: any) {
       console.log("ERRO AO EXCLUIR:", error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível excluir o usuário.");
+
+      Toast.show({
+        type: "error",
+        text1: "Erro ao excluir",
+        text2: "Tente novamente mais tarde.",
+      });
     }
+
+    setModalVisible(false);
   };
 
   const renderItem = ({ item }: { item: Usuario }) => (
@@ -78,7 +97,10 @@ export default function UsuariosScreen({ navigation, route }: Props) {
           <Text style={styles.btnText}>Editar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnDelete} onPress={() => excluirUsuario(item.id)}>
+        <TouchableOpacity
+          style={styles.btnDelete}
+          onPress={() => confirmarExclusao(item)}
+        >
           <Text style={styles.btnText}>Excluir</Text>
         </TouchableOpacity>
       </View>
@@ -106,6 +128,38 @@ export default function UsuariosScreen({ navigation, route }: Props) {
           contentContainerStyle={{ paddingBottom: 40 }}
         />
       )}
+
+      {/* Modal de exclusão */}
+      <Modal isVisible={modalVisible}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Excluir Usuário?</Text>
+
+          <Text style={styles.modalMessage}>
+            Tem certeza que deseja excluir{" "}
+            <Text style={{ fontWeight: "bold" }}>
+              {usuarioSelecionado?.username}
+            </Text>
+            ?
+          </Text>
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalCancel]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalDelete]}
+              onPress={excluirUsuario}
+            >
+              <Text style={styles.modalButtonText}>Excluir</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -166,5 +220,45 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  // Modal
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalCancel: {
+    backgroundColor: "#ccc",
+  },
+  modalDelete: {
+    backgroundColor: "#dc3545",
+  },
+  modalButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 import axios from "axios";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../../App";
+import { saveLastRoute } from "../../../utils/navigationState";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EditUser">;
 
@@ -33,6 +34,7 @@ export default function EditUserScreen({ navigation, route }: Props) {
         console.log(err);
         Alert.alert("Erro", "Não foi possível carregar o usuário");
       });
+      saveLastRoute("Usuarios", { token, userId });
   }, []);
 
   const salvar = async () => {

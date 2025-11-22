@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert, Text, ScrollView } from 'react-native';
+import { View, TextInput, StyleSheet, Text, ScrollView } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 
@@ -9,13 +11,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
-  const [token, setToken] = useState('');
-
   const BASE_URL = 'http://192.168.5.22:3000';
 
   const handleLogin = async () => {
     if (!username || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos');
+      Toast.show({
+        type: "error",
+        text1: "Campos obrigatórios",
+        text2: "Preencha usuário e senha.",
+      });
       return;
     }
 
@@ -26,16 +30,29 @@ export default function LoginScreen({ navigation }: Props) {
       });
 
       const tokenRecebido = response.data.token;
-      setToken(tokenRecebido);
 
-      console.log('TOKEN JWT:', tokenRecebido);
+      // 🔥 Salva token de forma persistente
+      await AsyncStorage.setItem("token", tokenRecebido);
 
-      // 👉 REDIRECIONA PRO DRAWER COM O TOKEN
-      navigation.navigate("Home", { token: tokenRecebido });
+      Toast.show({
+        type: "success",
+        text1: "Login realizado",
+        text2: "Bem-vindo ao Smart Gestão 🚀",
+      });
+
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+
 
     } catch (err: any) {
       console.log(err.response?.data || err.message);
-      Alert.alert('Erro', err.response?.data?.message || 'Falha no login');
+
+      Toast.show({
+        type: "error",
+        text1: "Erro no login",
+        text2: err.response?.data?.message || "Usuário ou senha inválidos",
+      });
     }
   };
 
@@ -44,7 +61,7 @@ export default function LoginScreen({ navigation }: Props) {
       <Text style={styles.title}>Smart Gestão</Text>
 
       <TextInput
-        placeholder="Username"
+        placeholder="Usuário"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
@@ -59,14 +76,9 @@ export default function LoginScreen({ navigation }: Props) {
         secureTextEntry
       />
 
-      <Button title="Entrar" onPress={handleLogin} />
-
-      {token ? (
-        <View style={styles.tokenContainer}>
-          <Text style={styles.tokenTitle}>Token JWT:</Text>
-          <Text selectable style={styles.tokenText}>{token}</Text>
-        </View>
-      ) : null}
+      <Text style={styles.botao} onPress={handleLogin}>
+        Entrar
+      </Text>
     </ScrollView>
   );
 }
@@ -76,33 +88,31 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontWeight: "bold",
     marginBottom: 40,
-    textAlign: 'center',
+    textAlign: "center",
+    color: "#003CA2",
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 12,
+    padding: 14,
     marginBottom: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
-  tokenContainer: {
-    marginTop: 30,
-    padding: 10,
-    backgroundColor: '#e0ffe0',
-    borderRadius: 8,
-  },
-  tokenTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  tokenText: {
-    color: 'green',
+  botao: {
+    backgroundColor: "#003CA2",
+    color: "#fff",
+    padding: 16,
+    fontSize: 18,
+    borderRadius: 10,
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });

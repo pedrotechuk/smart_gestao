@@ -3,4 +3,7 @@ export type DrawerParamList = {
   Admin: { token: string };
   Empresas: { token: string };
   Usuarios: { token: string };
+  CreateUser: { token: string }; 
+  EditUser: { token: string; userId: number };
+
 };

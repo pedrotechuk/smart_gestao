@@ -11,12 +11,10 @@ export class AuthService {
   ) {}
 
   async login(username: string, senha: string) {
-    console.log("ANTES DA QUERY");
 const [rows]: any = await this.db.query(
   'SELECT * FROM usuarios WHERE username = ? LIMIT 1',
   [username],
 );
-console.log("DEPOIS DA QUERY");
 
 
     const user = rows[0];

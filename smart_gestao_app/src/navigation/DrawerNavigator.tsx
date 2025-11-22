@@ -3,7 +3,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import HomeScreen from "../screens/Home";
 import AdminHome from "../screens/admin/AdminHome";
 import EmpresasScreen from "../screens/admin/EmpresasScreen";
-import UsuariosScreen from "../screens/admin/UsuariosScreen";
+import UsuariosScreen from "../screens/admin/users/UsuariosScreen";
 
 import type { DrawerParamList } from "./types";
 

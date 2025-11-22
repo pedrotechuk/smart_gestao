@@ -11,7 +11,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [senha, setSenha] = useState('');
   const [token, setToken] = useState('');
 
-  const BASE_URL = 'http://10.3.80.23:3000';
+  const BASE_URL = 'http://192.168.5.22:3000';
 
   const handleLogin = async () => {
     if (!username || !senha) {

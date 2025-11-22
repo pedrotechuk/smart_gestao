@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Text, ScrollView } from 'react-native';
 import axios from 'axios';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App';
 
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
   const [token, setToken] = useState('');
 
-  // Altere para o IP do seu PC
-  // IP da sua máquina na rede Wi-Fi
-const BASE_URL = 'http://192.168.5.32:3000';
-
+  const BASE_URL = 'http://10.3.80.23:3000';
 
   const handleLogin = async () => {
     if (!username || !senha) {
@@ -26,9 +25,13 @@ const BASE_URL = 'http://192.168.5.32:3000';
         senha,
       });
 
-      setToken(response.data.token);
-      console.log('TOKEN JWT:', response.data.token);
-      Alert.alert('Sucesso', 'Login realizado com sucesso!');
+      const tokenRecebido = response.data.token;
+      setToken(tokenRecebido);
+
+      console.log('TOKEN JWT:', tokenRecebido);
+
+      // 👉 REDIRECIONA PRO DRAWER COM O TOKEN
+      navigation.navigate("Home", { token: tokenRecebido });
 
     } catch (err: any) {
       console.log(err.response?.data || err.message);
@@ -39,6 +42,7 @@ const BASE_URL = 'http://192.168.5.32:3000';
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Smart Gestão</Text>
+
       <TextInput
         placeholder="Username"
         value={username}
@@ -46,6 +50,7 @@ const BASE_URL = 'http://192.168.5.32:3000';
         style={styles.input}
         autoCapitalize="none"
       />
+
       <TextInput
         placeholder="Senha"
         value={senha}
@@ -53,7 +58,9 @@ const BASE_URL = 'http://192.168.5.32:3000';
         style={styles.input}
         secureTextEntry
       />
+
       <Button title="Entrar" onPress={handleLogin} />
+
       {token ? (
         <View style={styles.tokenContainer}>
           <Text style={styles.tokenTitle}>Token JWT:</Text>

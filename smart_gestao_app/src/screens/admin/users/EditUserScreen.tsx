@@ -15,7 +15,7 @@ export default function EditUserScreen({ navigation, route }: Props) {
   const [empresaId, setEmpresaId] = useState("");
   const [perfilId, setPerfilId] = useState("");
 
-  const BASE_URL = "http://192.168.5.22:3000";
+  const BASE_URL = "http://10.0.0.108:3000";
 
   // Buscar dados do usuário
   useEffect(() => {

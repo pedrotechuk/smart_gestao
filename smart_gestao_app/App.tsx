@@ -9,6 +9,7 @@ import DrawerNavigator from './src/navigation/DrawerNavigator';
 import CreateUserScreen from './src/screens/admin/users/CreateUserScreen';
 import UsuarioScreen from './src/screens/admin/users/UsuariosScreen';
 import EditUserScreen from './src/screens/admin/users/EditUserScreen';
+import EmpresasScreen from './src/screens/admin/EmpresasScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -16,6 +17,7 @@ export type RootStackParamList = {
   CreateUser: { token: string };
   Usuarios: { token: string };
   EditUser: { token: string; userId: number };
+  Empresas: { token: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -72,6 +74,12 @@ export default function App() {
             name="EditUser"
             component={EditUserScreen}
             options={{ headerShown: true, title: "Editar Usuário" }}
+          />
+
+          <Stack.Screen
+            name="Empresas"
+            component={EmpresasScreen}
+            options={{ headerShown: true, title: "Usuários" }}
           />
 
         </Stack.Navigator>

@@ -1,21 +1,264 @@
-import { View, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import type { DrawerScreenProps } from "@react-navigation/drawer";
 import type { DrawerParamList } from "../../navigation/types";
+import axios from "axios";
+import { saveLastRoute } from "../../utils/navigationState";
+import Modal from "react-native-modal";
+import Toast from "react-native-toast-message";
 
 type Props = DrawerScreenProps<DrawerParamList, "Empresas">;
 
-export default function EmpresasScreen({ route }: Props) {
+interface Empresa {
+  id: number;
+  username: string;
+  empresa_id: number;
+  perfil_id: number;
+}
+
+export default function EmpresasScreen({ navigation, route }: Props) {
   const { token } = route.params;
 
-  return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 22, fontWeight: "bold" }}>
-        Cadastro de Empresas
-      </Text>
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [loading, setLoading] = useState(true);
 
-      <Text style={{ marginTop: 10 }}>
-        Token recebido: {token.slice(0, 10)}...
-      </Text>
+  // Modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState<Empresa | null>(null);
+
+  const BASE_URL = "http://10.0.0.108:3000";
+
+  const carregarEmpresas = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get<Empresa[]>(`${BASE_URL}/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEmpresas(response.data);
+    } catch (error) {
+      console.log("ERRO AO BUSCAR EMPRESAS:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarEmpresas();
+    saveLastRoute("Empresas", { token });
+  }, []);
+
+  // Abrir modal
+  const confirmarExclusao = (empresa: Empresa) => {
+    setEmpresaSelecionada(empresa);
+    setModalVisible(true);
+  };
+
+  // Excluir empresa
+  const excluirEmpresa = async () => {
+    if (!empresaSelecionada) return;
+
+    try {
+      await axios.delete(`${BASE_URL}/users/${empresaSelecionada.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Empresa excluída",
+        text2: `${empresaSelecionada.username} foi removida.`,
+      });
+
+      carregarEmpresas();
+
+    } catch (error: any) {
+      console.log("ERRO AO EXCLUIR:", error.response?.data || error.message);
+
+      Toast.show({
+        type: "error",
+        text1: "Erro ao excluir",
+        text2: "Tente novamente mais tarde.",
+      });
+    }
+
+    setModalVisible(false);
+  };
+
+  const renderItem = ({ item }: { item: Empresa }) => (
+    <View style={styles.card}>
+      <Text style={styles.username}>{item.username}</Text>
+      <Text style={styles.info}>Empresa ID: {item.empresa_id}</Text>
+      <Text style={styles.info}>Perfil: {item.perfil_id}</Text>
+
+      <View style={styles.row}>
+        <TouchableOpacity
+          style={styles.btnEdit}
+          onPress={() => navigation.navigate("EditUser", { token, userId: item.id })}
+        >
+          <Text style={styles.btnText}>Editar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.btnDelete}
+          onPress={() => confirmarExclusao(item)}
+        >
+          <Text style={styles.btnText}>Excluir</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Empresas</Text>
+
+      <TouchableOpacity
+        style={styles.btnCriar}
+        onPress={() => navigation.navigate("CreateUser", { token })}
+      >
+        <Text style={styles.btnCriarText}>+ Nova Empresa</Text>
+      </TouchableOpacity>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={empresas}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        />
+      )}
+
+      {/* Modal de exclusão */}
+      <Modal isVisible={modalVisible}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Excluir Empresa?</Text>
+
+          <Text style={styles.modalMessage}>
+            Tem certeza que deseja excluir{" "}
+            <Text style={{ fontWeight: "bold" }}>
+              {empresaSelecionada?.username}
+            </Text>
+            ?
+          </Text>
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalCancel]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalDelete]}
+              onPress={excluirEmpresa}
+            >
+              <Text style={styles.modalButtonText}>Excluir</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#f4f4f4",
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 15,
+    marginBottom: 15,
+    borderRadius: 8,
+    elevation: 1,
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  info: {
+    fontSize: 14,
+    color: "#555",
+  },
+  row: {
+    flexDirection: "row",
+    marginTop: 10,
+    gap: 10,
+  },
+  btnEdit: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 6,
+  },
+  btnDelete: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 6,
+  },
+  btnText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  btnCriar: {
+    backgroundColor: "#28a745",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  btnCriarText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  // Modal
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalCancel: {
+    backgroundColor: "#ccc",
+  },
+  modalDelete: {
+    backgroundColor: "#dc3545",
+  },
+  modalButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+});

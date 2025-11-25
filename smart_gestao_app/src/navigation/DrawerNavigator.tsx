@@ -6,6 +6,10 @@ import EmpresasScreen from "../screens/admin/EmpresasScreen";
 import UsuariosScreen from "../screens/admin/users/UsuariosScreen";
 
 import type { DrawerParamList } from "./types";
+import ReportDetail from "../screens/ReportDetail";
+import ReportsList from "../screens/ReportsList";
+import TicketDetal from "../screens/TicketDetal";
+import TicketList from "../screens/TicketList";
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -19,7 +23,19 @@ export default function DrawerNavigator({ route }:any) {
         component={HomeScreen}
         initialParams={{ token }}
       />
-
+      
+      <Drawer.Screen
+        name="Usuarios"
+        component={UsuariosScreen}
+        initialParams={{ token }}
+      />
+      
+      <Drawer.Screen
+        name="Empresas"
+        component={EmpresasScreen}
+        initialParams={{ token }}
+      />
+      
       <Drawer.Screen
         name="Admin"
         component={AdminHome}
@@ -27,16 +43,29 @@ export default function DrawerNavigator({ route }:any) {
       />
 
       <Drawer.Screen
-        name="Empresas"
-        component={EmpresasScreen}
+        name="ReportDetail"
+        component={ReportDetail}
         initialParams={{ token }}
       />
 
       <Drawer.Screen
-        name="Usuarios"
-        component={UsuariosScreen}
+        name="ReportsList"
+        component={ReportsList}
         initialParams={{ token }}
       />
+
+      <Drawer.Screen
+        name="TicketDetal"
+        component={TicketDetal}
+        initialParams={{ token }}
+      />
+
+      <Drawer.Screen
+        name="TicketList"
+        component={TicketList}
+        initialParams={{ token }}
+      />
+
     </Drawer.Navigator>
   );
 }

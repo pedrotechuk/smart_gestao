@@ -24,7 +24,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
     saveLastRoute("Usuarios", { token });
   }, []);
 
-  const BASE_URL = "http://192.168.5.22:3000";
+  const BASE_URL = "http://10.0.0.108:3000";
 
   const salvar = async () => {
     if (!username || !senha || !empresaId || !perfilId) {

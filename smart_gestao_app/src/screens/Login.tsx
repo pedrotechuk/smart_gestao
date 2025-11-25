@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export default function LoginScreen({ navigation }: Props) {
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
-  const BASE_URL = 'http://192.168.5.22:3000';
+  const BASE_URL = 'http://10.0.0.108:3000';
 
   const handleLogin = async () => {
     if (!username || !senha) {

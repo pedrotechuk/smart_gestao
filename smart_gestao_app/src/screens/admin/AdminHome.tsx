@@ -1,6 +1,7 @@
 import { View, Text, Button } from "react-native";
 import type { DrawerScreenProps } from "@react-navigation/drawer";
 import type { DrawerParamList } from "../../navigation/types";
+import React from "react";
 
 type Props = DrawerScreenProps<DrawerParamList, "Admin">;
 

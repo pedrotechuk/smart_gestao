@@ -1,264 +1,214 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import type { DrawerScreenProps } from "@react-navigation/drawer";
 import type { DrawerParamList } from "../navigation/types";
-import axios from "axios";
-import { saveLastRoute } from "../utils/navigationState";
-import Modal from "react-native-modal";
-import Toast from "react-native-toast-message";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = DrawerScreenProps<DrawerParamList, "TicketList">;
 
-interface Chamado {
-  id: number;
-  username: string;
-  empresa_id: number;
-  perfil_id: number;
-}
-
-export default function ChamadosScreen({ navigation, route }: Props) {
+export default function TicketList({ navigation, route }: Props) {
   const { token } = route.params;
 
-  const [chamados, setChamados] = useState<Chamado[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Modal
-  const [modalVisible, setModalVisible] = useState(false);
-  const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
-
-  const BASE_URL = "http://10.0.0.108:3000";
-
-  const carregarChamados = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get<Chamado[]>(`${BASE_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setChamados(response.data);
-    } catch (error) {
-      console.log("ERRO AO BUSCAR CHAMADOS:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    carregarChamados();
-    saveLastRoute("Chamados", { token });
-  }, []);
-
-  // Abrir modal
-  const confirmarExclusao = (chamado: Chamado) => {
-    setChamadoSelecionado(chamado);
-    setModalVisible(true);
-  };
-
-  // Excluir chamado
-  const excluirChamado = async () => {
-    if (!chamadoSelecionado) return;
-
-    try {
-      await axios.delete(`${BASE_URL}/users/${chamadoSelecionado.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      Toast.show({
-        type: "success",
-        text1: "Chamado excluído",
-        text2: `${chamadoSelecionado.username} foi removido.`,
-      });
-
-      carregarChamados();
-
-    } catch (error: any) {
-      console.log("ERRO AO EXCLUIR:", error.response?.data || error.message);
-
-      Toast.show({
-        type: "error",
-        text1: "Erro ao excluir",
-        text2: "Tente novamente mais tarde.",
-      });
-    }
-
-    setModalVisible(false);
-  };
-
-  const renderItem = ({ item }: { item: Chamado }) => (
-    <View style={styles.card}>
-      <Text style={styles.username}>{item.username}</Text>
-      <Text style={styles.info}>Empresa ID: {item.empresa_id}</Text>
-      <Text style={styles.info}>Perfil: {item.perfil_id}</Text>
-
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={styles.btnEdit}
-          onPress={() => navigation.navigate("EditUser", { token, userId: item.id })}
-        >
-          <Text style={styles.btnText}>Editar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.btnDelete}
-          onPress={() => confirmarExclusao(item)}
-        >
-          <Text style={styles.btnText}>Excluir</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const [empresa, setEmpresa] = useState("");
+  const [tipo, setTipo] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [subCategoria, setSubCategoria] = useState("");
+  const [assunto, setAssunto] = useState("");
+  const [descricao, setDescricao] = useState("");
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Chamados</Text>
+    <ScrollView style={styles.container}>
+      {/* TOP BAR */}
+      <View style={styles.topBar}>
+        <Text style={styles.topBarTitle}>Meus Chamados</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Home", { token })}>
+          <Ionicons name="home-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
+      {/* BOTÃO NOVO CHAMADO */}
       <TouchableOpacity
-        style={styles.btnCriar}
-        onPress={() => navigation.navigate("CreateUser", { token })}
+        style={styles.newButton}
+        onPress={() => navigation.navigate("TicketDetal", { token })}
       >
-        <Text style={styles.btnCriarText}>+ Novo Chamado</Text>
+        <Ionicons name="add-circle-outline" size={20} color="#fff" />
+        <Text style={styles.newButtonText}>Novo Chamado</Text>
       </TouchableOpacity>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />
-      ) : (
-        <FlatList
-          data={chamados}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 40 }}
+      {/* FORMULÁRIO */}
+      <View style={styles.form}>
+        <Text style={styles.label}>Empresa *</Text>
+        <TextInput
+          style={styles.input}
+          value={empresa}
+          onChangeText={setEmpresa}
+          placeholder="Digite a empresa"
         />
-      )}
 
-      {/* Modal de exclusão */}
-      <Modal isVisible={modalVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Excluir Chamado?</Text>
+        <Text style={styles.label}>Tipo *</Text>
+        <TextInput
+          style={styles.input}
+          value={tipo}
+          onChangeText={setTipo}
+          placeholder="Digite o tipo"
+        />
 
-          <Text style={styles.modalMessage}>
-            Tem certeza que deseja excluir{" "}
-            <Text style={{ fontWeight: "bold" }}>
-              {chamadoSelecionado?.username}
-            </Text>
-            ?
-          </Text>
+        <Text style={styles.label}>Categoria *</Text>
+        <TextInput
+          style={styles.input}
+          value={categoria}
+          onChangeText={setCategoria}
+          placeholder="Digite a categoria"
+        />
 
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalCancel]}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>Cancelar</Text>
-            </TouchableOpacity>
+        <Text style={styles.label}>Sub-Categoria *</Text>
+        <TextInput
+          style={styles.input}
+          value={subCategoria}
+          onChangeText={setSubCategoria}
+          placeholder="Digite a sub-categoria"
+        />
 
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalDelete]}
-              onPress={excluirChamado}
-            >
-              <Text style={styles.modalButtonText}>Excluir</Text>
-            </TouchableOpacity>
-          </View>
+        <Text style={styles.label}>Assunto *</Text>
+        <TextInput
+          style={styles.input}
+          value={assunto}
+          onChangeText={setAssunto}
+          placeholder="Digite o assunto"
+        />
+
+        <Text style={styles.label}>Descrição da solicitação *</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          value={descricao}
+          onChangeText={setDescricao}
+          placeholder="Digite a descrição"
+          multiline
+        />
+
+        {/* BOTÕES DE IMAGEM/VIDEO */}
+        <View style={styles.mediaButtonsRow}>
+          <TouchableOpacity style={styles.mediaButton}>
+            <Ionicons name="camera-outline" size={20} color="#6a4cff" />
+            <Text style={styles.mediaButtonText}>Foto</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.mediaButton}>
+            <Ionicons name="images-outline" size={20} color="#6a4cff" />
+            <Text style={styles.mediaButtonText}>Galeria</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.mediaButton}>
+            <Ionicons name="videocam-outline" size={20} color="#6a4cff" />
+            <Text style={styles.mediaButtonText}>Vídeo</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
 
-    </View>
+        {/* BOTÕES DE AÇÃO */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={[styles.actionButton, styles.cancelButton]}>
+            <Text style={styles.actionText}>Fechar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.saveButton]}>
+            <Text style={styles.actionText}>Salvar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#f4f4f4",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  card: {
     backgroundColor: "#fff",
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 8,
-    elevation: 1,
   },
-  username: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  info: {
-    fontSize: 14,
-    color: "#555",
-  },
-  row: {
-    flexDirection: "row",
-    marginTop: 10,
-    gap: 10,
-  },
-  btnEdit: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 6,
-  },
-  btnDelete: {
-    backgroundColor: "#dc3545",
-    padding: 10,
-    borderRadius: 6,
-  },
-  btnText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  btnCriar: {
-    backgroundColor: "#28a745",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
-    alignItems: "center",
-  },
-  btnCriarText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
-  // Modal
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 12,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  modalMessage: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalButtons: {
+  topBar: {
+    backgroundColor: "#6a4cff",
+    width: "100%",
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
-  },
-  modalButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
     alignItems: "center",
   },
-  modalCancel: {
-    backgroundColor: "#ccc",
+  topBarTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
   },
-  modalDelete: {
-    backgroundColor: "#dc3545",
+  newButton: {
+    flexDirection: "row",
+    gap: 6,
+    backgroundColor: "#6a4cff",
+    margin: 16,
+    paddingVertical: 14,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  modalButtonText: {
-    color: "white",
-    fontWeight: "bold",
+  newButtonText: {
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  form: {
+    marginHorizontal: 16,
+  },
+  label: {
+    fontWeight: "600",
+    marginTop: 12,
+    color: "#4b3db2",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#d6ceff",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 4,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: "top",
+  },
+  mediaButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  mediaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#6a4cff",
+    borderRadius: 10,
+    padding: 10,
+    flex: 1,
+    justifyContent: "center",
+    marginHorizontal: 4,
+  },
+  mediaButtonText: {
+    color: "#6a4cff",
+    fontWeight: "600",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    marginTop: 20,
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#aaa",
+  },
+  saveButton: {
+    backgroundColor: "#6a4cff",
+  },
+  actionText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });

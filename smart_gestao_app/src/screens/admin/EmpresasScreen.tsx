@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator
+} from "react-native";
 import type { DrawerScreenProps } from "@react-navigation/drawer";
 import type { DrawerParamList } from "../../navigation/types";
 import axios from "axios";
@@ -47,13 +54,11 @@ export default function EmpresasScreen({ navigation, route }: Props) {
     saveLastRoute("Empresas", { token });
   }, []);
 
-  // Abrir modal
   const confirmarExclusao = (empresa: Empresa) => {
     setEmpresaSelecionada(empresa);
     setModalVisible(true);
   };
 
-  // Excluir empresa
   const excluirEmpresa = async () => {
     if (!empresaSelecionada) return;
 
@@ -69,7 +74,6 @@ export default function EmpresasScreen({ navigation, route }: Props) {
       });
 
       carregarEmpresas();
-
     } catch (error: any) {
       console.log("ERRO AO EXCLUIR:", error.response?.data || error.message);
 
@@ -119,7 +123,7 @@ export default function EmpresasScreen({ navigation, route }: Props) {
       </TouchableOpacity>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#000" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#FFD700" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={empresas}
@@ -129,14 +133,14 @@ export default function EmpresasScreen({ navigation, route }: Props) {
         />
       )}
 
-      {/* Modal de exclusão */}
+      {/* MODAL */}
       <Modal isVisible={modalVisible}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Excluir Empresa?</Text>
 
           <Text style={styles.modalMessage}>
             Tem certeza que deseja excluir{" "}
-            <Text style={{ fontWeight: "bold" }}>
+            <Text style={{ fontWeight: "bold", color: "#fff" }}>
               {empresaSelecionada?.username}
             </Text>
             ?
@@ -159,7 +163,6 @@ export default function EmpresasScreen({ navigation, route }: Props) {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }
@@ -167,81 +170,90 @@ export default function EmpresasScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#773be6ff",
     padding: 20,
-    backgroundColor: "#f4f4f4",
   },
   title: {
     fontSize: 26,
+    color: "#fff",
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
+
+  // CARD
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: "#1E1E1E",
     padding: 15,
+    borderRadius: 12,
     marginBottom: 15,
-    borderRadius: 8,
-    elevation: 1,
   },
   username: {
     fontSize: 18,
+    color: "#fff",
     fontWeight: "bold",
   },
   info: {
     fontSize: 14,
-    color: "#555",
+    color: "#ccc",
   },
   row: {
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: 12,
     gap: 10,
   },
   btnEdit: {
     backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
   btnDelete: {
     backgroundColor: "#dc3545",
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
   btnText: {
     color: "#fff",
     fontWeight: "bold",
   },
+
+  // BOTÃO + NOVA EMPRESA
   btnCriar: {
-    backgroundColor: "#28a745",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "#ffffffff",
+    paddingVertical: 15,
+    borderRadius: 10,
     marginBottom: 20,
     alignItems: "center",
   },
   btnCriarText: {
-    color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#000",
   },
 
-  // Modal
+  // MODAL
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#1E1E1E",
     padding: 20,
     borderRadius: 12,
   },
   modalTitle: {
     fontSize: 22,
+    color: "#FFD700",
     fontWeight: "bold",
-    marginBottom: 10,
     textAlign: "center",
+    marginBottom: 10,
   },
   modalMessage: {
     fontSize: 16,
-    marginBottom: 20,
+    color: "#fff",
     textAlign: "center",
+    marginBottom: 20,
   },
   modalButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
     gap: 10,
   },
   modalButton: {
@@ -251,14 +263,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalCancel: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#444",
   },
   modalDelete: {
     backgroundColor: "#dc3545",
   },
   modalButtonText: {
-    color: "white",
-    fontWeight: "bold",
     fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
